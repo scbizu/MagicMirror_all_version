@@ -5,6 +5,7 @@ class Analyse{
 	public $landmark;
 	//允许误差范围
 	public $deviation;
+	public $kdeviation;
 	//瞳孔距离
 	public $distance_eye;
 	//脸颊距离
@@ -17,9 +18,12 @@ class Analyse{
 	public $width_eye;
 	//下颌宽度
 	public $Mandibular;
+	//额头宽度
+	public $Forehead;
 	
 	public function __construct($facedata){
 		$this->deviation=6.0;
+		$this->kdeviation=0.26;
 		$this->landmark=$facedata;		
 	}
 /**
@@ -34,6 +38,41 @@ class Analyse{
 		$distance=sqrt(pow(($dataarr[$R_Point]['x']-$dataarr[$L_Point]['x']),2)+pow(($dataarr[$R_Point]['y']-$dataarr[$L_Point]['y']),2));
 		return $distance;				
 	}
+/**
+ * 计算一段曲线的Delta值
+ * @param unknown $x1_Point
+ * @param unknown $y1_Point
+ * @param unknown $x2_Point
+ * @param unknown $y2_Point
+ * @return number
+ */	
+	private function  DeltaK($x1_Point,$y1_Point,$x2_Point,$y2_Point){
+		$delta=(abs(floatval($y2_Point-$y1_Point))/abs(floatval($x2_Point-$x1_Point)));
+		return $delta;
+	}
+	
+/**
+ * 提供左脸递减点的delta值   即 6->7->8->9->chin
+ * @return multitype:
+ */	
+	public function chinK_array(){
+		//初始化下巴点的数组
+	  $chinK=array();
+	  $dataarr=$this->landmark;
+	  //获取四个Delta值
+	  $left627=$this->DeltaK($dataarr['contour_left6']['x'], $dataarr['contour_left6']['y'], $dataarr['contour_left7']['x'], $dataarr['contour_left7']['y']);
+	  $left728=$this->DeltaK($dataarr['contour_left7']['x'], $dataarr['contour_left7']['y'], $dataarr['contour_left8']['x'], $dataarr['contour_left8']['y']);
+	  $left829=$this->DeltaK($dataarr['contour_left8']['x'], $dataarr['contour_left8']['y'], $dataarr['contour_left9']['x'], $dataarr['contour_left9']['y']);
+	  $left920=$this->DeltaK($dataarr['contour_left9']['x'], $dataarr['contour_left9']['y'], $dataarr['contour_chin']['x'], $dataarr['contour_chin']['y']);
+	  array_push($chinK, $left627);
+	  array_push($chinK, $left728);
+	  array_push($chinK, $left829);
+	  array_push($chinK, $left920);
+	  return $chinK;
+	}
+	
+	
+	
 	
 	/**
 	 * 脸部初始化
@@ -44,6 +83,7 @@ class Analyse{
 		$this->getEyeDistance();
 		$this->getMandibular();
 		$this->getNoseWidth();
+		$this->getForehead();
 		$this->getSingelEyeWidth();
 	}
 	/**
@@ -67,6 +107,16 @@ class Analyse{
 		$this->width_check=$distance;
 		return $distance;		
 	}
+/**
+ * 额头宽度
+ * @return number
+ */	
+   public function getForehead(){
+   	$distance=$this->GouGuFunction('contour_left6','contour_right6');
+   	$this->Forehead=$distance;
+   	return $distance; 	
+   }
+   	
 /**
  * 脸颊高度
  * @return number
@@ -116,11 +166,9 @@ class Analyse{
  */	
 	public function ifEggFace(){
 		$cBe=floatval(floatval($this->width_check)/floatval($this->width_eye));
-		if($cBe>4.2 AND $cBe<5.8){
+
 			return $cBe;
-		}else{
-			return FALSE;
-		}
+
 	}
 /**
  * 判断是否是瓜子脸
@@ -128,11 +176,8 @@ class Analyse{
  */	
 	public function ifGuaZiFace(){
 		$chBcw=floatval(floatval($this->height_check)/floatval($this->width_check) );
-		if($chBcw>1.3 AND $chBcw<1.6){
 			return $chBcw;
-		}else{
-			return FALSE;
-		}
+
 	}
 /**
  * 判断是否是巴掌脸
@@ -162,11 +207,7 @@ class Analyse{
  */	
 	public function ifSquareFace(){
 		$mBc=floatval(floatval($this->width_check)/floatval($this->Mandibular) );
-		if($mBc>0.8 AND $mBc<1.2){
 			return $mBc;
-		}else{
-			return FALSE;
-		}
 	}
 	
 /**
@@ -175,10 +216,8 @@ class Analyse{
  */	
 	public function ifCircleFace(){
 		$hBw=floatval($this->height_check)/floatval($this->width_check);
-		if($hBw>0.8 AND $hBw<1.2){
+
 			return $hBw;
-		}else{
-			return FALSE;
-		}
+
 	}
 }
