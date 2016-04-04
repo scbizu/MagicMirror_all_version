@@ -28,16 +28,16 @@ class Analyse{
 	}
 /**
  * 勾股定理
- * @param unknown $width_L
- * @param unknown $width_R
- * @param unknown $height_L
- * @param unknown $height_R
- */	
+ * @param string $L_Point
+ * @param string $R_Point
+ * @return number
+ */
 	private  function GouGuFunction($L_Point,$R_Point){
 		$dataarr=$this->landmark;
 		$distance=sqrt(pow(($dataarr[$R_Point]['x']-$dataarr[$L_Point]['x']),2)+pow(($dataarr[$R_Point]['y']-$dataarr[$L_Point]['y']),2));
 		return $distance;				
 	}
+	
 /**
  * 计算一段曲线的Delta值
  * @param unknown $x1_Point
@@ -70,10 +70,7 @@ class Analyse{
 	  array_push($chinK, $left920);
 	  return $chinK;
 	}
-	
-	
-	
-	
+		
 	/**
 	 * 脸部初始化
 	 */
@@ -146,10 +143,7 @@ class Analyse{
 		$this->width_eye=$width;
 		return $width;
 	}
-	
-	public function CheckFace(){
-		
-	}
+
 	
 /**
  * 下颌宽度
