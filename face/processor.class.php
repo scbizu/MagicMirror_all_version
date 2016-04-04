@@ -1,28 +1,28 @@
 <?php
 
 require_once 'analyse.class.php';
-
+require_once 'Db.class.php';
 //工具处理类
-class processor {
+class processor{
 	
 	//脸部数据
-	public $landmark;
+	private  $landmark;
 	//瞳孔距离
-	public $distance_eye;
+	private $distance_eye;
 	//脸颊距离
-	public $width_check;
+	private $width_check;
 	//脸颊高度
-	public  $height_check;
+	private  $height_check;
 	//鼻翼宽度
-	public $width_nose;
+	private $width_nose;
 	//眼睛宽度
-	public $width_eye;
+	private $width_eye;
 	//下颌宽度
-	public $Mandibular;
+	private $Mandibular;
 	//额头宽度
-	public $Forehead;
+	private $Forehead;
 	//三线数组
-	public $LineArray=array(
+	private $LineArray=array(
 		
 	);
 	//准确度  也即过程分?
@@ -36,6 +36,11 @@ class processor {
 	//容许误差值
 	public $deviation;
 	public $de;
+	
+	/**
+	 * 构造函数
+	 * @param array $facedata
+	 */
 	function __construct($facedata) {
         $analyse=new Analyse($facedata);
         $analyse->FaceInit();
@@ -197,7 +202,11 @@ class processor {
 		}
 		return $type;
 	}
-	
+
+/**
+ * 返回总和JSON数据
+ * @return string
+ */	
 public function do2JsonData(){
 	$resarr=array();
 	$resarr['CL']=self::$CLprocessRate;
@@ -206,56 +215,7 @@ public function do2JsonData(){
 	$resarr['ED']=self::$EDprocessRate;
 	$resarr['GZL']=self::$GZLprocessRate;
 	return json_encode($resarr);
-}	
-	
-	
-/**
- * 按照脸型匹配度  对脸进行排序
- */	
-	public static  function faceSort($facearray){
-		krsort($facearray);
-		return $facearray;
-	}
-/**
- * 返回脸型评估值  即符合度
- */	
-	public static function valueAccess($type,$value){
-		$array=array();
-		switch ($type){
-			//巴掌脸的情况
-			case 'bz':
-				$standard=floatval(1);
-				$res=floatval(1)-abs($value-$standard)/floatval($standard);
-				break;
-			//鹅蛋脸的情况
-			case 'ed':
-				$standard=floatval(5);
-				$res=floatval(1)-abs($value-$standard)/floatval($standard);
-				break;
-			//瓜子脸	
-			case 'gz':
-				$standard=floatval(1);
-				$res=floatval(1)-abs($value-$standard)/floatval($standard);
-				break;
-			//方形脸:
-			case 'fx':
-				$standard=floatval(1);
-				$res=floatval(1)-abs($value-$standard)/floatval($standard);
-				break;
-			//圆形
-			case 'yx':
-				$standard=floatval(1);
-				$res=floatval(1)-abs($value-$standard)/floatval($standard);
-				break;
-			default:
-				break;	
-		}
-		
-		
-		return $res;
-	}
-
-	
+}		
 
 }
 ?>
