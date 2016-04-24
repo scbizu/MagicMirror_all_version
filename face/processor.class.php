@@ -238,5 +238,6 @@ public function do2JsonData(){
 	return json_encode($resarr);
 }		
 
+
 }
 ?>

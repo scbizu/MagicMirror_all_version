@@ -30,6 +30,8 @@ $openid='fromUser';
 $facepp->api_key       = '8b8d737b74acc5d76b50dd1691397fda';
 $facepp->api_secret    = '4vAuKTZ0aa6JkN3UfiqfVpIZJRlWOGhh';
 
+//总用户人数
+//$userCount=$app->getAllUser();
 /**
  * 错误码:
  *   1000:不是正脸 
@@ -39,9 +41,11 @@ $facepp->api_secret    = '4vAuKTZ0aa6JkN3UfiqfVpIZJRlWOGhh';
  *  2000:是正脸 
  */
 //////////////////图片上传路由////////////////////////
-$apiObj->post('/img', function() use($apiObj){
-	$req=$apiObj->request();
-	$img=$req->post('img');
+$apiObj->post('/img', function ($req, $res, $args){
+// 	
+	$file=$req->getUploadedFiles();
+	$img=$file['img'];
+	
 	$bucket = 'magicmirror';	
 	// 生成上传Token
 	$token = $auth->uploadToken($bucket);	
@@ -105,5 +109,73 @@ $apiObj->post('/img', function() use($apiObj){
 	}	
 	echo $data;		
 });
+//test
+$apiObj->get('/test/{id}', function ($request, $response, $args) {
+  //  return $response->write($args['id']);
+  echo $args['id'];
+});
+//test
+$apiObj->post('/posttest', function($request,$response,$args){
+		$allPostPutVars = $request->getParsedBody();
+		$test=$allPostPutVars['key'];
+		echo json_encode($test);
+});
+//
+/**
+ * 接收APP端 状态传值 
+ * @example GET ./status?openid=xxxxx&did=1&statu=1
+ */
+$apiObj->get('/status', function($req,$res,$args){
+	$allGetVars = $req->getQueryParams();
+	$openid=$allGetVars['openid'];
+	$status=$allGetVars['statu'];
+	//化妆方案ID
+	$did=$allGetVars['did'];
+	
+	$keyuserface=$app->fetchUserSet('mm_main', $openid);
+	$max=$app->MostSuitable($keyuserface);	
+	
+	//把关联数组转换为索引数组
+	$userface=array_values($keyuserface);
+	//对整个匹配框架的处理
+	$ACC=$app->checkWholeIfMax($max['key'],$did);
+	//好评的情况
+	if($status>0){
+		//对当前用户的处理
+		$first_face=$max['value'];
+		///////
+		if(!$ACC){
+			$newAcc=$ACC;
+		}else{
+			//$usercount:一个根据此脸型用户数量匹配的算子
+			$newAcc=floatval(floatval($ACC)+1/$userCount);
+		}
+	}else if($status===0){
+		//中评的情况
+		$first_face=$max['value']-floatval(0.1);
+		///////		
+		$newAcc=$ACC;
+	}else{
+		//差评的情况
+		$first_face=$max['value']-floatval(1);
+		////////
+		$newAcc=floatval(floatval($ACC)-1/$userCount);
+	}
+	
 
-
+	foreach ($keyuserface as $k =>$v){
+		if($k===$max['key']){
+			$v=$first_face;
+		}
+		$keyuserface[$k]=$v;
+	}
+	$data=json_encode($keyuserface);
+	$t=$app->updateOnlyfacedata('mm_main', $openid, $data);
+	$Wholet=$app->updateWholeACC($did, $max['key'], $newAcc);
+	if($t && $Wholet){
+		echo 'access success';
+	}else{
+		echo 'access denied';
+	}
+});
+$apiObj->run();
