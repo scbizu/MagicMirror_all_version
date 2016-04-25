@@ -13,22 +13,17 @@ use Qiniu\Storage\UploadManager;
 ///////接收的POST数据
 
 //$useLast=$_POST['useLast'];
-$useLast=FALSE;
 
-$facepp = new Facepp();
 
-$app=new app();
+
 //Slim api框架的引入
-$apiObj=new \Slim\App();
-//七牛
-$accessKey = '_S5oPZGakasmUFjD-ZDKv04fce2W7nX0DE6GZ9b7';
-$secretKey = 'Ud4fabiU0txFI5qU65OgpYIogr3VOBoVb1hmHeaK';
-$auth = new Auth($accessKey, $secretKey);
+$apiObj = new \Slim\App(['settings' => ['displayErrorDetails' => true]]);
 
-$openid='fromUser';
 
-$facepp->api_key       = '8b8d737b74acc5d76b50dd1691397fda';
-$facepp->api_secret    = '4vAuKTZ0aa6JkN3UfiqfVpIZJRlWOGhh';
+
+
+
+
 
 //总用户人数
 //$userCount=$app->getAllUser();
@@ -43,23 +38,37 @@ $facepp->api_secret    = '4vAuKTZ0aa6JkN3UfiqfVpIZJRlWOGhh';
 //////////////////图片上传路由////////////////////////
 $apiObj->post('/img', function ($req, $res, $args){
 // 	
-	$file=$req->getUploadedFiles();
-	$img=$file['img'];
+	$app=new app();
+	$useLast=FALSE;
+	$openid='fromUser';
+	//七牛
+	$accessKey = '_S5oPZGakasmUFjD-ZDKv04fce2W7nX0DE6GZ9b7';
+	$secretKey = 'Ud4fabiU0txFI5qU65OgpYIogr3VOBoVb1hmHeaK';
+	$auth = new Auth($accessKey, $secretKey);
+	//facepp
+	$facepp = new Facepp();
+	$facepp->api_key       = '8b8d737b74acc5d76b50dd1691397fda';
+	$facepp->api_secret    = '4vAuKTZ0aa6JkN3UfiqfVpIZJRlWOGhh';
 	
+	$img=$_FILES["img"];
+//	var_dump($img);
+	if (empty($img["name"])) {
+		throw new Exception('Expected a newfile');
+	}
 	$bucket = 'magicmirror';	
 	// 生成上传Token
 	$token = $auth->uploadToken($bucket);	
 	$imgkey=substr(md5(time()), 2,10);
 	// 构建 UploadManager 对象
 	$uploadMgr = new UploadManager();
-	list($ret, $err) =$uploadMgr->putFile($token, $imgkey, $img);
+	list($ret, $err) =$uploadMgr->putFile($token, $imgkey, $img["tmp_name"]);
 	if($err!==null){
 		$errno=array('errno'=>'图片传输错误!');
 		$data=json_encode($errno);
 		exit();
 	}
 	//接收到的图片URL
-	$params['url']          = 'http://7xtb5w.com2.z0.glb.clouddn.com/'.$ret['key'];
+	$params['url']          = 'http://7xtb5w.com2.z0.glb.clouddn.com/'.$ret["key"];
 	$response               = $facepp->execute('/detection/detect',$params);
 	$json=json_encode($response);
 	if($response['http_code'] == 200) {
@@ -105,9 +114,11 @@ $apiObj->post('/img', function ($req, $res, $args){
 					}
 				}
 			}
+			echo $data;
 		}	
+	}else{
+		echo json_encode("no face");
 	}	
-	echo $data;		
 });
 //test
 $apiObj->get('/test/{id}', function ($request, $response, $args) {
