@@ -19,7 +19,8 @@ class app {
 	 */
 	public function checkFace($openid){
 		$lastface=$this->db->query("SELECT * FROM mm_main WHERE openid=:oid",array('oid'=>$openid));
-		return $lastface;
+		$res=$lastface;
+		return $res;
 	}
 	
 	/**
@@ -48,9 +49,8 @@ class app {
 	 * @param string $type
 	 * @return Ambigous <mixed, NULL, multitype:>
 	 */
-	public function updateSet($table,$openid,$data,$type){
-		$faceid=substr(md5(time()),1,10);
-		$row=$this->db->query("UPDATE".$table."SET faceid=:fid,facedata=:data,facetype=:type WHERE openid=:oid",array('fid'=>$faceid,'data'=>$data,'type'=>$type,'oid'=>$openid));
+	public function updateSet($faceid,$openid,$data,$type){
+		$row=$this->db->query("UPDATE mm_main SET facedata=:data,facetype=:type WHERE openid=:oid AND faceid=:fid",array('fid'=>$faceid,'data'=>$data,'type'=>$type,'oid'=>$openid,'fid'=>$faceid));
 		return $row;
 	}
 	/**
@@ -127,6 +127,27 @@ class app {
 	public function updateWholeACC($did,$facetype,$data){
 		$row=$this->db->query("UPDATE mm_sys_accuracy SET data=:data WHERE facetype=:ty AND did=:did",array('data'=>$data,'ty'=>$facetype,'did'=>$did));
 		return $row;
+	}
+	/**
+	 * 获取商品List
+	 * @param unknown $did
+	 * @param unknown $facestep
+	 * @return string
+	 */
+	public function GetGoodsList($did,$facestep){
+		$res=array();
+		$data=$this->db->query("SELECT * FROM mm_goods WHERE did=:did AND facestep=:fs ORDER BY goodsid DESC",array('did'=>$did,'fs'=>$facestep));
+		if(empty($data)){
+			return 'null';
+		}else{
+			foreach ($data as $k=>$v){
+				$res[$k]['goodsname']=$v['goodsname'];
+				$res[$k]['shopname']=$v['shopname'];
+				$res[$k]['price']=$v['price'];
+				$res[$k]['imglink']=$v['link'];
+			}
+			return json_encode($res);
+		}
 	}
 }
 

@@ -41,6 +41,7 @@ $apiObj->post('/img', function ($req, $res, $args){
 	$app=new app();
 	$useLast=FALSE;
 	$openid='fromUser';
+	//$openid=substr(md5(time()), 1,8);
 	//七牛
 	$accessKey = '_S5oPZGakasmUFjD-ZDKv04fce2W7nX0DE6GZ9b7';
 	$secretKey = 'Ud4fabiU0txFI5qU65OgpYIogr3VOBoVb1hmHeaK';
@@ -76,46 +77,47 @@ $apiObj->post('/img', function ($req, $res, $args){
 		$data = json_decode($response['body'], 1);
 	
 		#get face landmark
-	
-		$response = $facepp->execute('/detection/landmark', array('face_id' => $data['face'][0]['face_id']));
-		if($response['http_code']===200){
-			$resdata=json_decode($response['body'],1);
-	
-			$landmark=$resdata['result'][0]['landmark'];
-			//调用脸部处理
-			$process=new processor($landmark);
-			$line=abs($landmark['contour_left5']['y']-$landmark['contour_right5']['y']);
-			if($line>$process->de){
-				echo $line;
-			}else{
-				//
-				if($app->checkFace($openid) && $useLast===TRUE){
-					$lastface=$app->checkFace($openid);
-					$data=$lastface['facedata'];
-				}else if($app->checkFace($openid) && $useLast===FALSE){
-					$type=$process->finalJG();
-					$data=$process->do2JsonData();
-	
-					$updateOk=$app->updateSet('mm_main', $openid, $data, $type);
-	
-					if(!$updateOk){
-						echo '1001';
-						exit();
-					}
+		if(empty($data['face'][0])){
+			echo json_encode('Unknown face');
+		}else{
+			$response = $facepp->execute('/detection/landmark', array('face_id' => $data['face'][0]['face_id']));
+			if($response['http_code']===200){
+				$resdata=json_decode($response['body'],1);		
+				$landmark=$resdata['result'][0]['landmark'];
+				//调用脸部处理
+				$process=new processor($landmark);
+				$line=abs($landmark['contour_left5']['y']-$landmark['contour_right5']['y']);
+				if($line>$process->de){
+					$data= json_encode('side face');
 				}else{
-					$type=$process->finalJG();
-					$data=$process->do2JsonData();
-	
-					$saveOk=$app->saveData('mm_main', $openid, $data, $type);
-	
-					if(!$saveOk){
-						echo '1001';
-						exit();
+					//
+					if($app->checkFace($openid) && $useLast===TRUE){
+						$lastface=$app->checkFace($openid);
+						$data=$lastface[0]['facedata'];
+					}else if($app->checkFace($openid) && $useLast===FALSE){
+						$type=$process->finalJG();
+						$data=$process->do2JsonData();
+						$face=$app->checkFace($openid);
+						$updateOk=$app->updateSet($face[0]['faceid'],$openid, $data, $type);
+						if($updateOk==0){
+							echo 'no face update';
+							exit();
+						}
+					}else{		
+						$type=$process->finalJG();
+						$data=$process->do2JsonData();
+		
+						$saveOk=$app->saveData('mm_main', $openid, $data, $type);
+						
+						if($saveOk==0){
+							echo 'no face added';
+							exit();
+						}
 					}
 				}
+				echo $data;
 			}
-			echo $data;
-		}	
+		}
 	}else{
 		echo json_encode("no face");
 	}	
@@ -131,7 +133,23 @@ $apiObj->post('/posttest', function($request,$response,$args){
 		$test=$allPostPutVars['key'];
 		echo json_encode($test);
 });
-//
+
+/**
+ * app获取商品list
+ * @example GET ./status?did=1&facesteps=1
+ */
+$apiObj->get('/goods', function($req,$res,$args){
+	$gets=$req->getQueryParams();
+	//$faceType=$gets['facetype'];
+	$faceStep=$gets['facestep'];
+	$did=$gets['did'];
+	$res=$app->GetGoodsList($did, $faceStep);
+	if($res==='null'){
+		echo 'No Item';
+	}else{
+		echo $res;
+	}
+});
 /**
  * 接收APP端 状态传值 
  * @example GET ./status?openid=xxxxx&did=1&statu=1
