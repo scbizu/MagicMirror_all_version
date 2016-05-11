@@ -229,14 +229,16 @@ class processor{
  * @return string
  */	
 public function do2JsonData(){
-	$resarr=array();
-	$resarr['CL']=self::$CLprocessRate;
-	$resarr['FL']=self::$FLprocessRate;
-	$resarr['YL']=self::$YLprocessRate;
-	$resarr['ED']=self::$EDprocessRate;
-	$resarr['GZL']=self::$GZLprocessRate;
+	$resarr=array(
+		'CL'=>self::$CLprocessRate,
+		'FL'=>self::$FLprocessRate,
+		'YL'=>self::$YLprocessRate,
+		'ED'=>self::$EDprocessRate,
+		'GZL'=>self::$GZLprocessRate,
+	);
 	return json_encode($resarr);
 }		
+
 
 }
 ?>
