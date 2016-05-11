@@ -27,10 +27,10 @@ class processor{
 	);
 	//准确度算子
 	private $firstStep;
-	private $secondStep;	
+		
 	private $thirdStep;
 		
-	//准确度  
+	//准确度  也即过程分?
 	public static $CLprocessRate=0;
 	public static $GZLprocessRate=0;
 	public static $FLprocessRate=0;
@@ -80,7 +80,7 @@ class processor{
 		array_push($res, $this->LineArray['sl']);
 		array_push($res, $this->LineArray['tl']);
 		sort($res);
-		//第一步的特征值:1线领先于2线和3线的平均增量
+		//这是一个神奇的算子  嘛  就把他叫做魔术因子吧
 		$this->firstStep=(($res[2]-$res[1])/$res[1]+($res[2]-$res[0])/$res[0])/2;
 		
 		return $finalline;
@@ -93,22 +93,19 @@ class processor{
 	private function FacewidthVSheight(){
 		
 		$long=$this->Sanxian_longest();
-		$wORh=($this->height_check>$this->width_check)?$this->height_check:$this->width_check;
-		$this->secondStep=abs($this->height_check-$this->width_check)/$wORh;		
+		
 		switch ($long){
 			case 'fl':
 				self::$CLprocessRate+=$this->firstStep;
 				self::$FLprocessRate+=$this->firstStep;
 				self::$GZLprocessRate+=$this->firstStep;
-				//第二步
 				if($this->width_check <= $this->height_check){
-					//第二特征值: 长宽的增量
-					self::$CLprocessRate+=$this->secondStep;
+					self::$CLprocessRate+=($this->height_check-$this->width_check)/$this->width_check;
 					
 					$status='fl_h';
 				}else{
-					self::$FLprocessRate+=$this->secondStep;
-					self::$GZLprocessRate+=$this->secondStep;
+					self::$FLprocessRate+=$this->firstStep;
+					self::$GZLprocessRate+=$this->firstStep;
 					$status='fl_w';
 				}
 				break;
@@ -117,15 +114,13 @@ class processor{
 				self::$EDprocessRate+=$this->firstStep;
 				self::$YLprocessRate+=$this->firstStep;
 				self::$FLprocessRate+=$this->firstStep;
-				
-				//
 				if($this->width_check <= $this->height_check){
-					self::$CLprocessRate+=$this->secondStep;
+					self::$CLprocessRate+=($this->height_check-$this->width_check)/$this->width_check;
 					$status='sl_h';
 				}else{
-					self::$EDprocessRate+=$this->secondStep;
-					self::$YLprocessRate+=$this->secondStep;
-					self::$FLprocessRate+=$this->secondStep;
+					self::$EDprocessRate+=$this->firstStep;
+					self::$YLprocessRate+=$this->firstStep;
+					self::$FLprocessRate+=$this->firstStep;
 					$status='sl_w';
 				}	
 				break;
@@ -134,12 +129,12 @@ class processor{
 				self::$CLprocessRate+=$this->firstStep;
 				self::$FLprocessRate+=$this->firstStep;
 				if($this->width_check<=$this->height_check){
-					self::$CLprocessRate+=$this->secondStep;
+					self::$CLprocessRate+=($this->height_check-$this->width_check)/$this->width_check;
 					$status='tl_h';
 					
 				}else{
-					self::$CLprocessRate+=$this->secondStep;
-					self::$FLprocessRate+=$this->secondStep;
+					self::$CLprocessRate+=$this->firstStep;
+					self::$FLprocessRate+=$this->firstStep;
 					$status='tl_w';
 				}
 				break;
@@ -154,17 +149,14 @@ class processor{
  */	
 	public function lineFix(){
 		$tmp=$this->fixarray;
-		//第三个特征值
-		$dev=abs(abs($tmp[1]-$tmp[0])-abs($tmp[2]-$tmp[1]));
-		//根据最大数 控制百分比
-		$this->thirdStep+=$dev-0.1;
+		$this->thirdStep=abs($tmp[1]-$tmp[0])-abs($tmp[2]-$tmp[1]);
 		//判断斜率大小 
 		//依据为:直线方程求导所得为k=0的水平直线 而曲线方程求导所得的K必定大于零
-		if($dev<$this->deviation){
+		if(abs($tmp[1]-$tmp[0])-abs($tmp[2]-$tmp[1])<$this->deviation){
 			
-			//为线性下巴 重新计算第三特征值
-			//$this->thirdStep=(1/($this->thirdStep+$tmp[3]))/floatval(10);
-
+			//又是一个算误差的神奇的算子
+			$this->thirdStep=(1/($this->thirdStep+$tmp[3]))/floatval(10);
+			
 			if($tmp[3]<$this->deviation){
 				return 'ao_chin';
 			}else{
