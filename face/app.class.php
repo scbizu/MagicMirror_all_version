@@ -12,7 +12,24 @@ class app {
 		$this->db=new DB();
 			
 	}
-	
+/**
+ * 获取全部用户信息
+ * @return Ambigous <mixed, NULL, multitype:>
+ */	
+	public function Alluser(){
+		$lastface=$this->db->query("SELECT * FROM mm_main ");
+		$res=$lastface;
+		return $res;
+	}	
+/**
+ * 获取当前用户数量(不加读锁)
+ * @return integer
+ */	
+	public function Usercount(){
+		$count=$this->db->query("SELECT COUNT(*) as count FROM mm_main");
+		return $count['count'];
+	}
+
 	/**
 	 * 检查用户之前的脸型识别结果
 	 * @param string $openid
@@ -49,10 +66,36 @@ class app {
 	 * @param string $type
 	 * @return Ambigous <mixed, NULL, multitype:>
 	 */
-	public function updateSet($faceid,$openid,$data,$type){
-		$row=$this->db->query("UPDATE mm_main SET facedata=:data,facetype=:type WHERE openid=:oid AND faceid=:fid",array('fid'=>$faceid,'data'=>$data,'type'=>$type,'oid'=>$openid,'fid'=>$faceid));
+	public function updateSet($url,$faceid,$openid,$data,$type,$score){
+		$row=$this->db->query("UPDATE mm_main SET faceurl=:url,facedata=:data,facetype=:type,score=:score WHERE openid=:oid AND faceid=:fid",array('url'=>$url,'fid'=>$faceid,'data'=>$data,'type'=>$type,'oid'=>$openid,'score'=>$score,'fid'=>$faceid));
 		return $row;
 	}
+
+/**
+ * 化妆后的拍照
+ * @param string $url
+ * @param string $faceid
+ * @param string $openid
+ * @param string $data
+ * @param string $type
+ * @param integer $score
+ * @return integer
+ */	
+	public function updateSet_after($url,$faceid,$openid,$data,$type,$score){
+		$row=$this->db->query("UPDATE mm_main SET after_url=:url,after_facedata=:data,after_facetype=:type,after_score=:score WHERE openid=:oid AND faceid=:fid",array('url'=>$url,'fid'=>$faceid,'data'=>$data,'type'=>$type,'oid'=>$openid,'score'=>$score,'fid'=>$faceid));
+		return $row;
+	}	
+	/**
+	 * 获取PK所需信息
+	 * @param string $faceid
+	 * @return Ambigous <mixed, NULL, multitype:>
+	 */
+	public function getScore($faceid){
+		$data=$this->db->query("SELECT faceurl,score,after_faceurl,after_score FROM mm_main WHERE faceid=:fid",array('fid'=>$faceid));
+		return $data;
+	}	
+	
+	
 	/**
 	 * 只更新脸型的数据
 	 * @param string $table

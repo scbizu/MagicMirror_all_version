@@ -29,7 +29,6 @@ $apiObj = new \Slim\App(['settings' => ['displayErrorDetails' => true]]);
 //$userCount=$app->getAllUser();
 /**
  * 错误码:
- *   1000:不是正脸 
  *   1001:脸型备份到数据库失败
  *   
  *  正确识别码:
@@ -97,8 +96,9 @@ $apiObj->post('/img', function ($req, $res, $args){
 					}else if($app->checkFace($openid) && $useLast===FALSE){
 						$type=$process->finalJG();
 						$data=$process->do2JsonData();
+						$score=$process->calScore($type);
 						$face=$app->checkFace($openid);
-						$updateOk=$app->updateSet($face[0]['faceid'],$openid, $data, $type);
+						$updateOk=$app->updateSet($params['url'],$face[0]['faceid'],$openid, $data, $type,$score);
 						if($updateOk==0){
 							echo 'no face update';
 							exit();
@@ -122,17 +122,112 @@ $apiObj->post('/img', function ($req, $res, $args){
 		echo json_encode("no face");
 	}	
 });
-//test
-$apiObj->get('/test/{id}', function ($request, $response, $args) {
-  //  return $response->write($args['id']);
-  echo $args['id'];
-});
-//test
-$apiObj->post('/posttest', function($request,$response,$args){
-		$allPostPutVars = $request->getParsedBody();
-		$test=$allPostPutVars['key'];
-		echo json_encode($test);
-});
+
+	$apiObj->post('/pk', function ($req, $res, $args){
+		//
+		$app=new app();
+		$useLast=FALSE;
+		$openid='fromUser';
+		//$openid=substr(md5(time()), 1,8);
+		//七牛
+		$accessKey = '_S5oPZGakasmUFjD-ZDKv04fce2W7nX0DE6GZ9b7';
+		$secretKey = 'Ud4fabiU0txFI5qU65OgpYIogr3VOBoVb1hmHeaK';
+		$auth = new Auth($accessKey, $secretKey);
+		//facepp
+		$facepp = new Facepp();
+		$facepp->api_key       = '8b8d737b74acc5d76b50dd1691397fda';
+		$facepp->api_secret    = '4vAuKTZ0aa6JkN3UfiqfVpIZJRlWOGhh';
+	
+		$img=$_FILES["pk"];
+		//	var_dump($img);
+		if (empty($img["name"])) {
+			throw new Exception('Expected a newfile');
+		}
+		$bucket = 'magicmirror';
+		// 生成上传Token
+		$token = $auth->uploadToken($bucket);
+		$imgkey=substr(md5(time()), 2,10);
+		// 构建 UploadManager 对象
+		$uploadMgr = new UploadManager();
+		list($ret, $err) =$uploadMgr->putFile($token, $imgkey, $img["tmp_name"]);
+			if($err!==null){
+				$errno=array('errno'=>'图片传输错误!');
+				$data=json_encode($errno);
+				exit();
+			}
+		//接收到的图片URL
+				$params['url']          = 'http://7xtb5w.com2.z0.glb.clouddn.com/'.$ret["key"];
+				$response               = $facepp->execute('/detection/detect',$params);
+				$json=json_encode($response);
+				if($response['http_code'] == 200) {
+					#json decode
+					$data = json_decode($response['body'], 1);
+	
+					#get face landmark
+			if(empty($data['face'][0])){
+					echo json_encode('Unknown face');
+				}else{
+					$response = $facepp->execute('/detection/landmark', array('face_id' => $data['face'][0]['face_id']));
+					if($response['http_code']===200){
+						$userCount=$app->Usercount();
+						$resdata=json_decode($response['body'],1);
+						$landmark=$resdata['result'][0]['landmark'];
+						//调用脸部处理
+						$process=new processor($landmark);
+						$line=abs($landmark['contour_left5']['y']-$landmark['contour_right5']['y']);
+					if($line>$process->de){
+						$data= json_encode('side face');
+					}else{
+							$type=$process->finalJG();
+							//$data=$process->do2JsonData();
+							$face=$app->checkFace($openid);
+							$score=$process->calScore($type);
+							$updateOk=$app->updateSet_after($params['url'],$face[0]['faceid'],$openid, $data, $type,$score);
+
+						}
+							$pkdata=$app->getScore($face[0]['faceid']);
+							$mydata=$pkdata[0];
+							$alluser=$app->Alluser();
+							//Hack
+							$flag=1;
+							while(TRUE){
+								$otherFaceid=$alluser[rand(0, $userCount)]['faceid'];		
+								if($otherFaceid!=$$face[0]['faceid']){
+									break;
+								}	
+								//Hack
+									$flag++;
+									if($flag>=5){
+										echo json_encode("miss appointment");
+										break;
+									}											
+							}
+							
+							$pkdata_ap=$app->getScore($otherFaceid);
+							$otherdata=$pkdata_ap[0];
+							$data=array($mydata,$otherdata);
+							
+							echo json_encode($data,JSON_FORCE_OBJECT);
+						}
+					}
+				}else{
+					echo json_encode("no face");
+				}
+			});
+
+
+
+// //test
+// $apiObj->get('/test/{id}', function ($request, $response, $args) {
+//   //  return $response->write($args['id']);
+//   echo $args['id'];
+// });
+// //test
+// $apiObj->post('/posttest', function($request,$response,$args){
+// 		$allPostPutVars = $request->getParsedBody();
+// 		$test=$allPostPutVars['key'];
+// 		echo json_encode($test);
+// });
 
 /**
  * app获取商品list
@@ -207,4 +302,5 @@ $apiObj->get('/status', function($req,$res,$args){
 		echo 'access denied';
 	}
 });
+
 $apiObj->run();

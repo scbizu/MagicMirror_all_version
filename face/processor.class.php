@@ -246,7 +246,31 @@ public function do2JsonData(){
 	);
 	return json_encode($resarr);
 }		
-
+/**
+ * 计算脸型分数
+ */
+public function calScore($type){
+		switch ($type){
+			case 'CL':
+				$score=self::$CLprocessRate*10000;
+				break;
+			case 'FL':
+				$score=self::$FLprocessRate*10000;
+				break;
+			case 'YL':
+				$score=self::$YLprocessRate*10000;
+				break;
+			case 'ED':
+				$score=self::$EDprocessRate*10000;
+				break;
+			case 'GZL':
+				$score=self::$GZLprocessRate*10000;
+				break;
+			default:
+				break;	
+		}
+		return $score;
+}
 
 }
 ?>
