@@ -39,7 +39,7 @@ $apiObj->post('/img', function ($req, $res, $args){
 // 	
 	$app=new app();
 	$useLast=FALSE;
-	$openid='fromUser';
+	$openid='haha';
 	//$openid=substr(md5(time()), 1,8);
 	//七牛
 	$accessKey = '_S5oPZGakasmUFjD-ZDKv04fce2W7nX0DE6GZ9b7';
@@ -106,8 +106,8 @@ $apiObj->post('/img', function ($req, $res, $args){
 					}else{		
 						$type=$process->finalJG();
 						$data=$process->do2JsonData();
-		
-						$saveOk=$app->saveData('mm_main', $openid, $data, $type);
+						$score=$process->calScore($type);
+						$saveOk=$app->saveData($params['url'],$score,'mm_main', $openid, $data, $type);
 						
 						if($saveOk==0){
 							echo 'no face added';
@@ -123,11 +123,11 @@ $apiObj->post('/img', function ($req, $res, $args){
 	}	
 });
 
+
 	$apiObj->post('/pk', function ($req, $res, $args){
 		//
 		$app=new app();
-		$useLast=FALSE;
-		$openid='fromUser';
+		$openid='haha';
 		//$openid=substr(md5(time()), 1,8);
 		//七牛
 		$accessKey = '_S5oPZGakasmUFjD-ZDKv04fce2W7nX0DE6GZ9b7';
@@ -179,11 +179,10 @@ $apiObj->post('/img', function ($req, $res, $args){
 						$data= json_encode('side face');
 					}else{
 							$type=$process->finalJG();
-							//$data=$process->do2JsonData();
+							$data=$process->do2JsonData();
 							$face=$app->checkFace($openid);
 							$score=$process->calScore($type);
 							$updateOk=$app->updateSet_after($params['url'],$face[0]['faceid'],$openid, $data, $type,$score);
-
 						}
 							$pkdata=$app->getScore($face[0]['faceid']);
 							$mydata=$pkdata[0];
@@ -192,7 +191,7 @@ $apiObj->post('/img', function ($req, $res, $args){
 							$flag=1;
 							while(TRUE){
 								$otherFaceid=$alluser[rand(0, $userCount)]['faceid'];		
-								if($otherFaceid!=$$face[0]['faceid']){
+								if($otherFaceid!=$face[0]['faceid']){
 									break;
 								}	
 								//Hack

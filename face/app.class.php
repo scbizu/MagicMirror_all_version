@@ -26,8 +26,9 @@ class app {
  * @return integer
  */	
 	public function Usercount(){
-		$count=$this->db->query("SELECT COUNT(*) as count FROM mm_main");
-		return $count['count'];
+		$count=$this->db->query("SELECT COUNT(*)  AS count FROM mm_main");
+		
+		return $count[0]['count'];
 	}
 
 	/**
@@ -48,9 +49,9 @@ class app {
 	 * @param string $type
 	 * @return boolean
 	 */
-	public function saveData($table,$openid,$data,$type){
+	public function saveData($url,$score,$table,$openid,$data,$type){
 		$faceid=substr(md5(time()),1,10);
-		$row=$this->db->query("INSERT INTO ".$table."(openid,faceid,facedata,facetype)  VALUES(:oid,:fid,:data,:type)",array('oid'=>$openid,'fid'=>$faceid,'data'=>$data,'type'=>$type));
+		$row=$this->db->query("INSERT INTO ".$table."(openid,faceid,facedata,facetype,faceurl,score)  VALUES(:oid,:fid,:data,:type,:faceurl,:score)",array('oid'=>$openid,'fid'=>$faceid,'data'=>$data,'type'=>$type,'faceurl'=>$url,'score'=>$score));
 		if($row>0){
 			return TRUE;
 		}else{
@@ -82,7 +83,7 @@ class app {
  * @return integer
  */	
 	public function updateSet_after($url,$faceid,$openid,$data,$type,$score){
-		$row=$this->db->query("UPDATE mm_main SET after_url=:url,after_facedata=:data,after_facetype=:type,after_score=:score WHERE openid=:oid AND faceid=:fid",array('url'=>$url,'fid'=>$faceid,'data'=>$data,'type'=>$type,'oid'=>$openid,'score'=>$score,'fid'=>$faceid));
+		$row=$this->db->query("UPDATE mm_main SET after_faceurl=:url,after_facedata=:data,after_facetype=:type,after_score=:score,status=:sta WHERE openid=:oid AND faceid=:fid",array('url'=>$url,'fid'=>$faceid,'data'=>$data,'type'=>$type,'oid'=>$openid,'score'=>$score,'fid'=>$faceid,'sta'=>1));
 		return $row;
 	}	
 	/**
@@ -120,14 +121,7 @@ class app {
 		return $facedata;
 	}
 	
-	/**
-	 * 获取用户数量
-	 * @return integer
-	 */
-	public function getAllUser(){
-		$row=$this->db->query("SELECT COUNT(*) as count FROM mm_user WHERE");
-		return $row['count'];
-	}
+
 	
 	/**
 	 * 返回最大的键值对
