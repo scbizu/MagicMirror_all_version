@@ -12,7 +12,25 @@ class app {
 		$this->db=new DB();
 			
 	}
-	
+/**
+ * 获取全部用户信息
+ * @return Ambigous <mixed, NULL, multitype:>
+ */	
+	public function Alluser(){
+		$lastface=$this->db->query("SELECT * FROM mm_main ");
+		$res=$lastface;
+		return $res;
+	}	
+/**
+ * 获取当前用户数量(不加读锁)
+ * @return integer
+ */	
+	public function Usercount(){
+		$count=$this->db->query("SELECT COUNT(*)  AS count FROM mm_main");
+		
+		return $count[0]['count'];
+	}
+
 	/**
 	 * 检查用户之前的脸型识别结果
 	 * @param string $openid
@@ -31,9 +49,9 @@ class app {
 	 * @param string $type
 	 * @return boolean
 	 */
-	public function saveData($table,$openid,$data,$type){
+	public function saveData($url,$score,$table,$openid,$data,$type){
 		$faceid=substr(md5(time()),1,10);
-		$row=$this->db->query("INSERT INTO ".$table."(openid,faceid,facedata,facetype)  VALUES(:oid,:fid,:data,:type)",array('oid'=>$openid,'fid'=>$faceid,'data'=>$data,'type'=>$type));
+		$row=$this->db->query("INSERT INTO ".$table."(openid,faceid,facedata,facetype,faceurl,score)  VALUES(:oid,:fid,:data,:type,:faceurl,:score)",array('oid'=>$openid,'fid'=>$faceid,'data'=>$data,'type'=>$type,'faceurl'=>$url,'score'=>$score));
 		if($row>0){
 			return TRUE;
 		}else{
@@ -49,10 +67,36 @@ class app {
 	 * @param string $type
 	 * @return Ambigous <mixed, NULL, multitype:>
 	 */
-	public function updateSet($faceid,$openid,$data,$type){
-		$row=$this->db->query("UPDATE mm_main SET facedata=:data,facetype=:type WHERE openid=:oid AND faceid=:fid",array('fid'=>$faceid,'data'=>$data,'type'=>$type,'oid'=>$openid,'fid'=>$faceid));
+	public function updateSet($url,$faceid,$openid,$data,$type,$score){
+		$row=$this->db->query("UPDATE mm_main SET faceurl=:url,facedata=:data,facetype=:type,score=:score WHERE openid=:oid AND faceid=:fid",array('url'=>$url,'fid'=>$faceid,'data'=>$data,'type'=>$type,'oid'=>$openid,'score'=>$score,'fid'=>$faceid));
 		return $row;
 	}
+
+/**
+ * 化妆后的拍照
+ * @param string $url
+ * @param string $faceid
+ * @param string $openid
+ * @param string $data
+ * @param string $type
+ * @param integer $score
+ * @return integer
+ */	
+	public function updateSet_after($url,$faceid,$openid,$data,$type,$score){
+		$row=$this->db->query("UPDATE mm_main SET after_faceurl=:url,after_facedata=:data,after_facetype=:type,after_score=:score,status=:sta WHERE openid=:oid AND faceid=:fid",array('url'=>$url,'fid'=>$faceid,'data'=>$data,'type'=>$type,'oid'=>$openid,'score'=>$score,'fid'=>$faceid,'sta'=>1));
+		return $row;
+	}	
+	/**
+	 * 获取PK所需信息
+	 * @param string $faceid
+	 * @return Ambigous <mixed, NULL, multitype:>
+	 */
+	public function getScore($faceid){
+		$data=$this->db->query("SELECT faceurl,score,after_faceurl,after_score FROM mm_main WHERE faceid=:fid",array('fid'=>$faceid));
+		return $data;
+	}	
+	
+	
 	/**
 	 * 只更新脸型的数据
 	 * @param string $table
@@ -77,14 +121,7 @@ class app {
 		return $facedata;
 	}
 	
-	/**
-	 * 获取用户数量
-	 * @return integer
-	 */
-	public function getAllUser(){
-		$row=$this->db->query("SELECT COUNT(*) as count FROM mm_user WHERE");
-		return $row['count'];
-	}
+
 	
 	/**
 	 * 返回最大的键值对
