@@ -157,7 +157,7 @@ class processor{
 		//第三个特征值
 		$dev=abs(abs($tmp[1]-$tmp[0])-abs($tmp[2]-$tmp[1]));
 		//根据最大数 控制百分比
-		$this->thirdStep+=$dev-0.1;
+		$this->thirdStep+=$dev-$this->deviation;
 		//判断斜率大小 
 		//依据为:直线方程求导所得为k=0的水平直线 而曲线方程求导所得的K必定大于零
 		if($dev<$this->deviation){

@@ -21,10 +21,6 @@ $apiObj = new \Slim\App(['settings' => ['displayErrorDetails' => true]]);
 
 
 
-
-
-
-
 //总用户人数
 //$userCount=$app->getAllUser();
 /**
@@ -39,7 +35,8 @@ $apiObj->post('/img', function ($req, $res, $args){
 // 	
 	$app=new app();
 	$useLast=FALSE;
-	$openid='haha';
+	$opendata=$req->getQueryParams();
+	$openid=$opendata['openid'];
 	//$openid=substr(md5(time()), 1,8);
 	//七牛
 	$accessKey = '_S5oPZGakasmUFjD-ZDKv04fce2W7nX0DE6GZ9b7';
@@ -127,7 +124,8 @@ $apiObj->post('/img', function ($req, $res, $args){
 	$apiObj->post('/pk', function ($req, $res, $args){
 		//
 		$app=new app();
-		$openid='haha';
+		$opendata=$req->getQueryParams();
+		$openid=$opendata['openid'];
 		//$openid=substr(md5(time()), 1,8);
 		//七牛
 		$accessKey = '_S5oPZGakasmUFjD-ZDKv04fce2W7nX0DE6GZ9b7';
@@ -190,7 +188,7 @@ $apiObj->post('/img', function ($req, $res, $args){
 							//Hack
 							$flag=1;
 							while(TRUE){
-								$otherFaceid=$alluser[rand(0, $userCount)]['faceid'];		
+								$otherFaceid=$alluser[rand(0, $userCount-1)]['faceid'];
 								if($otherFaceid!=$face[0]['faceid']){
 									break;
 								}	
@@ -230,25 +228,28 @@ $apiObj->post('/img', function ($req, $res, $args){
 
 /**
  * app获取商品list
- * @example GET ./status?did=1&facesteps=1
+ * @example GET ./goods?did=1&facestep=1
  */
 $apiObj->get('/goods', function($req,$res,$args){
+	$app=new app();
 	$gets=$req->getQueryParams();
 	//$faceType=$gets['facetype'];
 	$faceStep=$gets['facestep'];
 	$did=$gets['did'];
-	$res=$app->GetGoodsList($did, $faceStep);
+	$res=$app->GetGoodsList($did,$faceStep);
 	if($res==='null'){
 		echo 'No Item';
 	}else{
-		echo $res;
+		echo json_encode($res);
 	}
 });
 /**
  * 接收APP端 状态传值 
  * @example GET ./status?openid=xxxxx&did=1&statu=1
  */
-$apiObj->get('/status', function($req,$res,$args){
+$apiObj->post('/status', function($req,$res,$args){
+	$app=new app();
+	$userCount=$app->Usercount();
 	$allGetVars = $req->getQueryParams();
 	$openid=$allGetVars['openid'];
 	$status=$allGetVars['statu'];
