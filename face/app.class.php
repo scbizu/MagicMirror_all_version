@@ -20,7 +20,8 @@ class app {
 		$lastface=$this->db->query("SELECT * FROM mm_main ");
 		$res=$lastface;
 		return $res;
-	}	
+	}
+
 /**
  * 获取当前用户数量(不加读锁)
  * @return integer
@@ -32,6 +33,16 @@ class app {
 	}
 
 	/**
+	 * 根据脸型获取did
+	 * @TODO:这里的模型应该是1对多的模型  待完善
+	 * @param $facetype
+	 * @return mixed
+	 */
+	public function fetchDid($facetype){
+			$data=$this->db->query("SELECT did FROM mm_draw WHERE facetype=:facetype",array('facetype'=>$facetype));
+			return $data[0]['did'];
+	}
+		/**
 	 * 检查用户之前的脸型识别结果
 	 * @param string $openid
 	 */
@@ -165,6 +176,7 @@ class app {
 		$row=$this->db->query("UPDATE mm_sys_accuracy SET data=:data WHERE facetype=:ty AND did=:did",array('data'=>$data,'ty'=>$facetype,'did'=>$did));
 		return $row;
 	}
+
 	/**
 	 * 获取商品List
 	 * @param unknown $did

@@ -35,7 +35,7 @@ $apiObj->post('/img', function ($req, $res, $args){
 // 	
 	$app=new app();
 	$useLast=FALSE;
-	$opendata=$req->getQueryParams();
+	$opendata=$req->getParsedBody();
 	$openid=$opendata['openid'];
 	//$openid=substr(md5(time()), 1,8);
 	//七牛
@@ -124,7 +124,7 @@ $apiObj->post('/img', function ($req, $res, $args){
 	$apiObj->post('/pk', function ($req, $res, $args){
 		//
 		$app=new app();
-		$opendata=$req->getQueryParams();
+		$opendata=$req->getParsedBody();
 		$openid=$opendata['openid'];
 		//$openid=substr(md5(time()), 1,8);
 		//七牛
@@ -185,19 +185,28 @@ $apiObj->post('/img', function ($req, $res, $args){
 							$pkdata=$app->getScore($face[0]['faceid']);
 							$mydata=$pkdata[0];
 							$alluser=$app->Alluser();
-							//Hack
-							$flag=1;
+							//Hack   锁机制
+							$aflag=1;
+							$fflag=1;
 							while(TRUE){
-								$otherFaceid=$alluser[rand(0, $userCount-1)]['faceid'];
-								if($otherFaceid!=$face[0]['faceid']){
-									break;
-								}	
-								//Hack
-									$flag++;
-									if($flag>=5){
+								$otherFaceid=$alluser[rand(0, $userCount-1)];
+								if($otherFaceid['after_facedata']!=NULL) {
+									if ($otherFaceid['faceid'] != $face[0]['faceid']) {
+										break;
+									}
+									//Hack
+									$aflag++;
+									if ($aflag >= 5) {
 										echo json_encode("miss appointment");
 										break;
-									}											
+									}
+								}
+								//Hack
+								$fflag++;
+								if ($fflag >= 10) {
+									echo json_encode("no more face");
+									break;
+								}
 							}
 							
 							$pkdata_ap=$app->getScore($otherFaceid);
@@ -230,17 +239,18 @@ $apiObj->post('/img', function ($req, $res, $args){
  * app获取商品list
  * @example GET ./goods?did=1&facestep=1
  */
-$apiObj->get('/goods', function($req,$res,$args){
+$apiObj->post('/goods', function($req,$res,$args){
 	$app=new app();
-	$gets=$req->getQueryParams();
-	//$faceType=$gets['facetype'];
+	$gets=$req->getParsedBody();
+	$faceType=$gets['facetype'];
 	$faceStep=$gets['facestep'];
-	$did=$gets['did'];
+	//$did=$gets['did'];
+    $did=$app->fetchDid($faceType);
 	$res=$app->GetGoodsList($did,$faceStep);
 	if($res==='null'){
-		echo 'No Item';
+		echo json_encode('No Item');
 	}else{
-		echo json_encode($res);
+		echo $res;
 	}
 });
 /**
@@ -250,18 +260,20 @@ $apiObj->get('/goods', function($req,$res,$args){
 $apiObj->post('/status', function($req,$res,$args){
 	$app=new app();
 	$userCount=$app->Usercount();
-	$allGetVars = $req->getQueryParams();
+	$allGetVars = $req->getParsedBody();
 	$openid=$allGetVars['openid'];
 	$status=$allGetVars['statu'];
+    $facetype=$allGetVars['facetype'];
 	//化妆方案ID
-	$did=$allGetVars['did'];
-	
+	//$did=$allGetVars['did'];
+	$did=$app->fetchDid($facetype);
 	$keyuserface=$app->fetchUserSet('mm_main', $openid);
 	$max=$app->MostSuitable($keyuserface);	
 	
 	//把关联数组转换为索引数组
 	$userface=array_values($keyuserface);
 	//对整个匹配框架的处理
+	//mark did
 	$ACC=$app->checkWholeIfMax($max['key'],$did);
 	//好评的情况
 	if($status>0){
@@ -295,6 +307,7 @@ $apiObj->post('/status', function($req,$res,$args){
 	}
 	$data=json_encode($keyuserface);
 	$t=$app->updateOnlyfacedata('mm_main', $openid, $data);
+	//mark did
 	$Wholet=$app->updateWholeACC($did, $max['key'], $newAcc);
 	if($t && $Wholet){
 		echo 'access success';
