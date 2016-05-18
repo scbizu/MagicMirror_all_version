@@ -255,7 +255,7 @@ $apiObj->post('/goods', function($req,$res,$args){
 });
 /**
  * 接收APP端 状态传值 
- * @example GET ./status?openid=xxxxx&did=1&statu=1
+ * @example POST
  */
 $apiObj->post('/status', function($req,$res,$args){
 	$app=new app();
@@ -263,18 +263,20 @@ $apiObj->post('/status', function($req,$res,$args){
 	$allGetVars = $req->getParsedBody();
 	$openid=$allGetVars['openid'];
 	$status=$allGetVars['statu'];
-    $facetype=$allGetVars['facetype'];
+    //$facetype=$allGetVars['facetype'];
 	//化妆方案ID
 	//$did=$allGetVars['did'];
-	$did=$app->fetchDid($facetype);
-	$keyuserface=$app->fetchUserSet('mm_main', $openid);
+	//$did=$app->fetchDid($facetype);
+	$keyuserface=$app->fetchUserSet($openid);
+	var_dump($keyuserface);
+	//获取最合适的脸型
 	$max=$app->MostSuitable($keyuserface);	
 	
 	//把关联数组转换为索引数组
-	$userface=array_values($keyuserface);
+	//$userface=array_values($keyuserface);
 	//对整个匹配框架的处理
-	//mark did
-	$ACC=$app->checkWholeIfMax($max['key'],$did);
+	
+	$ACC=$app->checkWholeIfMax($max['key']);
 	//好评的情况
 	if($status>0){
 		//对当前用户的处理
@@ -298,7 +300,7 @@ $apiObj->post('/status', function($req,$res,$args){
 		$newAcc=floatval(floatval($ACC)-1/$userCount);
 	}
 	
-
+	//更新用户脸型数据
 	foreach ($keyuserface as $k =>$v){
 		if($k===$max['key']){
 			$v=$first_face;
@@ -307,12 +309,11 @@ $apiObj->post('/status', function($req,$res,$args){
 	}
 	$data=json_encode($keyuserface);
 	$t=$app->updateOnlyfacedata('mm_main', $openid, $data);
-	//mark did
-	$Wholet=$app->updateWholeACC($did, $max['key'], $newAcc);
+	$Wholet=$app->updateWholeACC($max['key'], $newAcc);
 	if($t && $Wholet){
-		echo 'access success';
+		json_encode('access success') ;
 	}else{
-		echo 'access denied';
+		json_encode('access denied') ;
 	}
 });
 

@@ -23,7 +23,8 @@ class Analyse{
 	
 	public function __construct($facedata){
 		$this->deviation=6.0;
-		$this->kdeviation=0.26;
+		//通用误差值
+		$this->kdeviation=0.15;
 		$this->landmark=$facedata;		
 	}
 /**
@@ -37,7 +38,26 @@ class Analyse{
 		$distance=sqrt(pow(($dataarr[$R_Point]['x']-$dataarr[$L_Point]['x']),2)+pow(($dataarr[$R_Point]['y']-$dataarr[$L_Point]['y']),2));
 		return $distance;				
 	}
-	
+
+	/**
+	 * 中点勾股定理
+	 * @param $po1
+	 * @param $po2
+	 * @param $po3
+	 * @param $po4
+	 * @return float
+	 */
+	private function  GG_getMiddlePo($po1,$po2,$po3,$po4){
+		$dataarr=$this->landmark;
+		$middle_x_lf=($dataarr[$po1]['x']+$dataarr[$po2]['x'])/2;
+		$middle_x_rg=($dataarr[$po3]['x']+$dataarr[$po4]['x'])/2;
+		$middle_y_lf=($dataarr[$po1]['y']+$dataarr[$po2]['y'])/2;
+		$middle_y_rg=($dataarr[$po4]['y']+$dataarr[$po4]['y'])/2;
+		$distance=sqrt(pow($middle_x_rg-$middle_x_lf,2)+pow($middle_y_rg-$middle_y_lf,2));
+		return $distance;
+	}
+
+
 /**
  * 计算一段曲线的Delta值
  * @param unknown $x1_Point
@@ -95,12 +115,13 @@ class Analyse{
 		return $distance;
 	}
 /**
- * 脸颊宽度
+ * 脸颊宽度 2线
  * @return number
  */	
 	public function getCheckDistance(){
 				
-		$distance=$this->GouGuFunction('contour_left1', 'contour_right1');
+		//$distance=$this->GouGuFunction('contour_left3', 'contour_right3');
+		$distance=$this->GG_getMiddlePo('contour_left3','contour_left4','contour_right4','contour_right3');
 		$this->width_check=$distance;
 		return $distance;		
 	}
@@ -109,7 +130,8 @@ class Analyse{
  * @return number
  */	
    public function getForehead(){
-   	$distance=$this->GouGuFunction('contour_left6','contour_right6');
+	 $distance=$this->GG_getMiddlePo('contour_left2','contour_left3','contour_right3','contour_right2');
+   	//$distance=$this->GouGuFunction('contour_left6','contour_right6');
    	$this->Forehead=$distance;
    	return $distance; 	
    }
@@ -120,7 +142,7 @@ class Analyse{
  */	
 	public function getCheckHeight(){
 		$dataarr=$this->landmark;
-		$height=abs($dataarr['contour_right5']['y']-$dataarr['contour_chin']['y'])*2;
+		$height=abs($dataarr['contour_right2']['y']-$dataarr['contour_chin']['y'])*2;
 		$this->height_check=$height;
 		return $height;
 	}
@@ -150,7 +172,8 @@ class Analyse{
  * @return unknown
  */	
 	public function getMandibular(){
-		$width=$this->GouGuFunction('contour_left5','contour_right5');
+		//$width=$this->GouGuFunction('contour_left5','contour_right5');
+		$width=$this->GG_getMiddlePo('contour_left6','contour_left7','contour_right7','contour_right6');
 		$this->Mandibular=$width;
 		return $width;
 	}

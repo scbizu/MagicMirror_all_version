@@ -6,7 +6,9 @@ require_once 'Db.class.php';
 class processor{
 	
 	//脸部数据
-	private  $landmark;
+	//private  $landmark;
+	//
+	private $HvsW=1.0;
 	//瞳孔距离
 	private $distance_eye;
 	//脸颊距离
@@ -21,6 +23,7 @@ class processor{
 	private $Mandibular;
 	//额头宽度
 	private $Forehead;
+
 	//三线数组
 	private $LineArray=array(
 		
@@ -59,7 +62,7 @@ class processor{
 		$this->de=$analyse->deviation;
 		$this->LineArray=array(
 			'fl'=>$this->Forehead,
-			'sl'=>$this->width_check,
+			'sl'=>$this->width_check*1.08,
 			'tl'=>$this->Mandibular	
 		);
 		$this->fixarray=$analyse->chinK_array();
@@ -82,7 +85,6 @@ class processor{
 		sort($res);
 		//第一步的特征值:1线领先于2线和3线的平均增量
 		$this->firstStep=(($res[2]-$res[1])/$res[1]+($res[2]-$res[0])/$res[0])/2;
-		
 		return $finalline;
 	}
 	
@@ -101,10 +103,9 @@ class processor{
 				self::$FLprocessRate+=$this->firstStep;
 				self::$GZLprocessRate+=$this->firstStep;
 				//第二步
-				if($this->width_check <= $this->height_check){
+				if($this->width_check *$this->HvsW <= $this->height_check){
 					//第二特征值: 长宽的增量
 					self::$CLprocessRate+=$this->secondStep;
-					
 					$status='fl_h';
 				}else{
 					self::$FLprocessRate+=$this->secondStep;
@@ -119,7 +120,7 @@ class processor{
 				self::$FLprocessRate+=$this->firstStep;
 				
 				//
-				if($this->width_check <= $this->height_check){
+				if($this->width_check *$this->HvsW<= $this->height_check){
 					self::$CLprocessRate+=$this->secondStep;
 					$status='sl_h';
 				}else{
@@ -157,13 +158,13 @@ class processor{
 		//第三个特征值
 		$dev=abs(abs($tmp[1]-$tmp[0])-abs($tmp[2]-$tmp[1]));
 		//根据最大数 控制百分比
-		$this->thirdStep+=$dev-$this->deviation;
+		$this->thirdStep+=$this->deviation;
 		//判断斜率大小 
 		//依据为:直线方程求导所得为k=0的水平直线 而曲线方程求导所得的K必定大于零
 		if($dev<$this->deviation){
 			
 			//为线性下巴 重新计算第三特征值
-			//$this->thirdStep=(1/($this->thirdStep+$tmp[3]))/floatval(10);
+			$this->thirdStep=(1/($this->thirdStep+$tmp[3]))/floatval(10);
 
 			if($tmp[3]<$this->deviation){
 				return 'ao_chin';
@@ -179,11 +180,16 @@ class processor{
  * @return string
  */	
 	public function finalJG(){
+		//TODO:It's just a joke
+		self::$GZLprocessRate=$this->deviation-$this->thirdStep;
 		$status=$this->FacewidthVSheight();
 		switch ($status){
 			case 'fl_h':
 
-				self::$CLprocessRate+=0.33;
+				self::$CLprocessRate+=$this->deviation;
+				if(self::$CLprocessRate>=99){
+					self::$CLprocessRate=0.98;
+				}
 				$type='CL';
 				break;
 			case 'fl_w':
@@ -198,6 +204,14 @@ class processor{
 				break;
 			case 'sl_h':
 				self::$CLprocessRate+=0.33;
+				$fix=$this->lineFix();
+				if($fix==='ao_chin'){
+					self::$FLprocessRate+=$this->thirdStep;
+				}else if($fix==='l_chin'){
+					self::$EDprocessRate+=$this->thirdStep;
+				}else if($fix==='c_chin'){
+					self::$YLprocessRate+=$this->thirdStep;
+				}
 				$type='CL';				
 				break;
 			case 'sl_w':
@@ -214,7 +228,10 @@ class processor{
 				}
 				break;
 			case 'tl_h':
-				self::$CLprocessRate+=0.33;
+				self::$CLprocessRate+=$this->deviation;
+				if(self::$CLprocessRate>0.98){
+					self::$CLprocessRate=0.98;
+				}
 				$type='CL';				
 				break;
 			case 'tl_w':

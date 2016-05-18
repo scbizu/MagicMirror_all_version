@@ -126,10 +126,10 @@ class app {
 	 * @param string $openid
 	 * @return array
 	 */
-	public function fetchUserSet($table,$openid){
-		$row=$this->db->query("SELECT facedata FROM".$table."WHERE openid=:oid",array('oid'=>$openid));
+	public function fetchUserSet($openid){
+		$row=$this->db->query("SELECT facedata FROM mm_main WHERE openid=:oid",array('oid'=>$openid));
 		$facedata=json_decode($row['facedata']);
-		return $facedata;
+		return $row;
 	}
 	
 
@@ -157,8 +157,8 @@ class app {
  * @param integer $did
  * @return boolean
  */
-	public function checkWholeIfMax($facetype,$did){
-		$row=$this->db->query("SELECT type_acc FROM mm_sys_accuracy WHERE facetype=:ft AND did=:did",array('ft'=>$facetype,'did'=>$did));
+	public function checkWholeIfMax($facetype){
+		$row=$this->db->query("SELECT type_acc FROM mm_sys_accuracy WHERE facetype=:ft",array('ft'=>$facetype));
 		if($row['type_acc']==floatval(1)){
 			return FALSE;	
 		}else{
@@ -172,8 +172,8 @@ class app {
 	 * @param float $data
 	 * @return integer
 	 */
-	public function updateWholeACC($did,$facetype,$data){
-		$row=$this->db->query("UPDATE mm_sys_accuracy SET data=:data WHERE facetype=:ty AND did=:did",array('data'=>$data,'ty'=>$facetype,'did'=>$did));
+	public function updateWholeACC($facetype,$data){
+		$row=$this->db->query("UPDATE mm_sys_accuracy SET data=:data WHERE facetype=:ty",array('data'=>$data,'ty'=>$facetype));
 		return $row;
 	}
 
