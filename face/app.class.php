@@ -12,6 +12,228 @@ class app {
 		$this->db=new DB();
 			
 	}
+
+	/**
+	 *获取适宜长宽比
+	 * @param $facetype
+	 * @return mixed
+	 */
+	public function getdw(){
+		$data=$this->db->query("SELECT hw FROM mm_sys_accuracy");
+		return $data[0]['hw'];
+	}
+
+	/**
+	 *获取整体误差值
+	 * @param $facetype
+	 * @return mixed
+	 */
+	public function getdevo(){
+		$data=$this->db->query("SELECT devo FROM mm_sys_accuracy");
+		return $data[0]["devo"];
+	}
+
+	/**
+	 *获取二线比例
+	 * @param $facetype
+	 * @return mixed
+	 */
+	public function getSlopro(){
+		$data=$this->db->query("SELECT slpro FROM mm_sys_accuracy ");
+		return $data[0]['slpro'];
+	}
+
+	/**
+	 *重置适宜长宽比
+	 * @param $facetype
+	 * @return mixed
+	 */
+	public function setdw($data){
+		$this->db->query("UPDATE mm_sys_accuracy SET dw=:dw",array('dw'=>$data));
+		$this->db->query("UPDATE mm_sys_accuracy SET optimes=optimes+1");
+	}
+
+
+	/**
+	 * 设置整体误差值
+	 * @param $data
+	 * @param $facetype
+	 */
+	public function setdevo($data){
+		$this->db->query("UPDATE mm_sys_accuracy SET devo=:dv ",array('dv'=>$data));
+		$this->db->query("UPDATE mm_sys_accuracy SET optimes=optimes+1");
+	}
+
+	/**
+	 *设置颧骨放缩比
+	 * @param $facetype
+	 * @return mixed
+	 */
+	public function setSlopro($data){
+		$this->db->query("UPDATE mm_sys_accuracy SET slpro=:sl",array('sl'=>$data));
+		$this->db->query("UPDATE mm_sys_accuracy SET optimes=optimes+1");
+	}
+
+
+
+	/**
+	 * 一个神经网络的算法
+	 * 通过数据库来模拟大脑记忆保存的过程
+	 */
+	public function ANN($Cface,$Oface){
+		$dw=$this->getdw();
+		$devo=$this->getdevo();
+		$slpro=$this->getSlopro();
+		$percent=0.000001;
+		$user=$this->Usercount();
+		switch ($Cface){
+			case FL:
+				switch ($Oface){
+					case FL:
+						$this->setdw($dw);
+						$this->setdevo($devo);
+						$this->setSlopro($slpro);
+						break;
+					case YL:
+						$this->setdw($dw+$user*$percent);
+						$this->setdevo($devo-$user*$percent);
+						$this->setSlopro($slpro+$user*$percent);
+						break;
+					case ED:
+						$this->setdw($dw+$user*$percent);
+						$this->setdevo($devo-$user*$percent*2);
+						$this->setSlopro($slpro+$user*$percent);
+						break;
+					case GZL:
+						$this->setdw($dw+$user*$percent);
+						$this->setdevo($devo-$user*$percent*2);
+						$this->setSlopro($slpro-$user*$percent);
+						break;
+					case CL:
+						$this->setdw($dw-$user*$percent);
+						$this->setdevo($devo);
+						$this->setSlopro($slpro);
+						break;
+				}
+				break;
+			case YL:
+				switch ($Oface){
+					case FL:
+						$this->setdw($dw-$user*$percent);
+						$this->setdevo($devo+$user*$percent);
+						$this->setSlopro($slpro-$user*$percent);
+						break;
+					case YL:
+						$this->setdw($dw);
+						$this->setdevo($devo);
+						$this->setSlopro($slpro);
+						break;
+					case ED:
+						$this->setdw($dw);
+						$this->setdevo($devo-$user*$percent);
+						$this->setSlopro($slpro);
+						break;
+					case GZL:
+						$this->setdw($dw);
+						$this->setdevo($devo-$user*$percent);
+						$this->setSlopro($slpro);
+						break;
+					case CL:
+						$this->setdw($dw-$user*$percent*2);
+						$this->setdevo($devo-$user*$percent);
+						$this->setSlopro($slpro+$user*$percent);
+						break;
+				}
+				break;
+			case ED:
+				switch ($Oface){
+					case FL:
+						$this->setdw($dw-$user*$percent);
+						$this->setdevo($devo+$user*$percent*2);
+						$this->setSlopro($slpro-$user*$percent);
+						break;
+					case YL:
+						$this->setdw($dw);
+						$this->setdevo($devo+$user*$percent);
+						$this->setSlopro($slpro);
+						break;
+					case ED:
+						$this->setdw($dw);
+						$this->setdevo($devo);
+						$this->setSlopro($slpro);
+						break;
+					case GZL:
+						$this->setdw($dw);
+						$this->setdevo($devo);
+						$this->setSlopro($slpro-$user*$percent*2);
+						break;
+					case CL:
+						$this->setdw($dw-$user*$percent*2);
+						$this->setdevo($devo+$user*$percent*2);
+						$this->setSlopro($slpro-$user*$percent);
+						break;
+				}
+				break;
+			case GZL:
+				switch ($Oface){
+					case FL:
+						$this->setdw($dw-$user*$percent);
+						$this->setdevo($devo+$user*$percent*2);
+						$this->setSlopro($slpro+$user*$percent);
+						break;
+					case YL:
+						$this->setdw($dw,$Oface);
+						$this->setdevo($devo+$user*$percent);
+						$this->setSlopro($slpro+2*$user*$percent);
+						break;
+					case ED:
+						$this->setdw($dw);
+						$this->setdevo($devo);
+						$this->setSlopro($slpro+2*$user*$percent);
+						break;
+					case GZL:
+						$this->setdw($dw);
+						$this->setdevo($devo);
+						$this->setSlopro($slpro);
+						break;
+					case CL:
+						$this->setdw($dw-$user*$percent*2);
+						$this->setdevo($devo+$user*$percent*2);
+						$this->setSlopro($slpro+$user*$percent);
+						break;
+				}
+				break;
+			case CL:
+				switch ($Oface){
+					case FL:
+						$this->setdw($dw+$user*$percent);
+						$this->setdevo($devo);
+						$this->setSlopro($slpro);
+						break;
+					case YL:
+						$this->setdw($dw+$user*$percent*2);
+						$this->setdevo($devo-$user*$percent);
+						$this->setSlopro($slpro+$user*$percent);
+						break;
+					case ED:
+						$this->setdw($dw+$user*$percent*2);
+						$this->setdevo($devo-$user*$percent*2);
+						$this->setSlopro($slpro+$user*$percent);
+						break;
+					case GZL:
+						$this->setdw($dw+$user*$percent*2);
+						$this->setdevo($devo-$user*$percent*2);
+						$this->setSlopro($slpro-$user*$percent);
+						break;
+					case CL:
+						$this->setdw($dw);
+						$this->setdevo($devo);
+						$this->setSlopro($slpro);
+						break;
+				}
+				break;
+		}
+	}
 /**
  * 获取全部用户信息
  * @return Ambigous <mixed, NULL, multitype:>
@@ -93,8 +315,8 @@ class app {
  * @param integer $score
  * @return integer
  */	
-	public function updateSet_after($url,$faceid,$openid,$data,$type,$score){
-		$row=$this->db->query("UPDATE mm_main SET after_faceurl=:url,after_facedata=:data,after_facetype=:type,after_score=:score,status=:sta WHERE openid=:oid AND faceid=:fid",array('url'=>$url,'fid'=>$faceid,'data'=>$data,'type'=>$type,'oid'=>$openid,'score'=>$score,'fid'=>$faceid,'sta'=>1));
+	public function updateSet_after($chooseSet,$url,$faceid,$openid,$data,$type,$score){
+		$row=$this->db->query("UPDATE mm_main SET user_choose=:choose, after_faceurl=:url,after_facedata=:data,after_facetype=:type,after_score=:score,status=:sta WHERE openid=:oid AND faceid=:fid",array('choose'=>$chooseSet,'url'=>$url,'fid'=>$faceid,'data'=>$data,'type'=>$type,'oid'=>$openid,'score'=>$score,'fid'=>$faceid,'sta'=>1));
 		return $row;
 	}	
 	/**

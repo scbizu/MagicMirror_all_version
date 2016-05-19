@@ -2,13 +2,14 @@
 
 require_once 'analyse.class.php';
 require_once 'Db.class.php';
+require_once 'app.class.php';
 //工具处理类
 class processor{
 	
 	//脸部数据
 	//private  $landmark;
 	//
-	private $HvsW=1.0;
+	private $HvsW;
 	//瞳孔距离
 	private $distance_eye;
 	//脸颊距离
@@ -50,7 +51,9 @@ class processor{
 	 * @param array $facedata
 	 */
 	function __construct($facedata) {
+		$app=new app();
         $analyse=new Analyse($facedata);
+		$this->HvsW=$app->getdw();
         $analyse->FaceInit();
         $this->distance_eye=$analyse->distance_eye;        
 		$this->width_check=$analyse->width_check;
@@ -62,7 +65,7 @@ class processor{
 		$this->de=$analyse->deviation;
 		$this->LineArray=array(
 			'fl'=>$this->Forehead,
-			'sl'=>$this->width_check*1.08,
+			'sl'=>$this->width_check*$app->getSlopro(),
 			'tl'=>$this->Mandibular	
 		);
 		$this->fixarray=$analyse->chinK_array();
@@ -108,7 +111,7 @@ class processor{
 					self::$CLprocessRate+=$this->secondStep;
 					$status='fl_h';
 				}else{
-					self::$FLprocessRate+=$this->secondStep;
+					//self::$FLprocessRate+=$this->secondStep;
 					self::$GZLprocessRate+=$this->secondStep;
 					$status='fl_w';
 				}
@@ -196,6 +199,7 @@ class processor{
 				$fix=$this->lineFix();
 				if($fix==='l_chin'){
 					$type='GZL';
+					//Joke again
 					self::$GZLprocessRate+=$this->thirdStep;
 				}else{
 					$type='FL';
@@ -203,7 +207,7 @@ class processor{
 				}				
 				break;
 			case 'sl_h':
-				self::$CLprocessRate+=0.33;
+				self::$CLprocessRate+=$this->deviation;
 				$fix=$this->lineFix();
 				if($fix==='ao_chin'){
 					self::$FLprocessRate+=$this->thirdStep;

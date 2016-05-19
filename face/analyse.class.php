@@ -22,9 +22,10 @@ class Analyse{
 	public $Forehead;
 	
 	public function __construct($facedata){
+		$app=new app();
 		$this->deviation=6.0;
 		//通用误差值
-		$this->kdeviation=0.15;
+		$this->kdeviation=$app->getdevo();
 		$this->landmark=$facedata;		
 	}
 /**
