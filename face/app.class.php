@@ -87,145 +87,145 @@ class app {
 		$percent=0.000001;
 		$user=$this->Usercount();
 		switch ($Cface){
-			case FL:
+			case "FL":
 				switch ($Oface){
-					case FL:
+					case "FL":
 						$this->setdw($dw);
 						$this->setdevo($devo);
 						$this->setSlopro($slpro);
 						break;
-					case YL:
+					case "YL":
 						$this->setdw($dw+$user*$percent);
 						$this->setdevo($devo-$user*$percent);
 						$this->setSlopro($slpro+$user*$percent);
 						break;
-					case ED:
+					case "ED":
 						$this->setdw($dw+$user*$percent);
 						$this->setdevo($devo-$user*$percent*2);
 						$this->setSlopro($slpro+$user*$percent);
 						break;
-					case GZL:
+					case "GZL":
 						$this->setdw($dw+$user*$percent);
 						$this->setdevo($devo-$user*$percent*2);
 						$this->setSlopro($slpro-$user*$percent);
 						break;
-					case CL:
+					case "CL":
 						$this->setdw($dw-$user*$percent);
 						$this->setdevo($devo);
 						$this->setSlopro($slpro);
 						break;
 				}
 				break;
-			case YL:
+			case "YL":
 				switch ($Oface){
-					case FL:
+					case "FL":
 						$this->setdw($dw-$user*$percent);
 						$this->setdevo($devo+$user*$percent);
 						$this->setSlopro($slpro-$user*$percent);
 						break;
-					case YL:
+					case "YL":
 						$this->setdw($dw);
 						$this->setdevo($devo);
 						$this->setSlopro($slpro);
 						break;
-					case ED:
+					case "ED":
 						$this->setdw($dw);
 						$this->setdevo($devo-$user*$percent);
 						$this->setSlopro($slpro);
 						break;
-					case GZL:
+					case "GZL":
 						$this->setdw($dw);
 						$this->setdevo($devo-$user*$percent);
 						$this->setSlopro($slpro);
 						break;
-					case CL:
+					case "CL":
 						$this->setdw($dw-$user*$percent*2);
 						$this->setdevo($devo-$user*$percent);
 						$this->setSlopro($slpro+$user*$percent);
 						break;
 				}
 				break;
-			case ED:
+			case "ED":
 				switch ($Oface){
-					case FL:
+					case "FL":
 						$this->setdw($dw-$user*$percent);
 						$this->setdevo($devo+$user*$percent*2);
 						$this->setSlopro($slpro-$user*$percent);
 						break;
-					case YL:
+					case "YL":
 						$this->setdw($dw);
 						$this->setdevo($devo+$user*$percent);
 						$this->setSlopro($slpro);
 						break;
-					case ED:
+					case "ED":
 						$this->setdw($dw);
 						$this->setdevo($devo);
 						$this->setSlopro($slpro);
 						break;
-					case GZL:
+					case "GZL":
 						$this->setdw($dw);
 						$this->setdevo($devo);
 						$this->setSlopro($slpro-$user*$percent*2);
 						break;
-					case CL:
+					case "CL":
 						$this->setdw($dw-$user*$percent*2);
 						$this->setdevo($devo+$user*$percent*2);
 						$this->setSlopro($slpro-$user*$percent);
 						break;
 				}
 				break;
-			case GZL:
+			case "GZL":
 				switch ($Oface){
-					case FL:
+					case "FL":
 						$this->setdw($dw-$user*$percent);
 						$this->setdevo($devo+$user*$percent*2);
 						$this->setSlopro($slpro+$user*$percent);
 						break;
-					case YL:
+					case "YL":
 						$this->setdw($dw,$Oface);
 						$this->setdevo($devo+$user*$percent);
 						$this->setSlopro($slpro+2*$user*$percent);
 						break;
-					case ED:
+					case "ED":
 						$this->setdw($dw);
 						$this->setdevo($devo);
 						$this->setSlopro($slpro+2*$user*$percent);
 						break;
-					case GZL:
+					case "GZL":
 						$this->setdw($dw);
 						$this->setdevo($devo);
 						$this->setSlopro($slpro);
 						break;
-					case CL:
+					case "CL":
 						$this->setdw($dw-$user*$percent*2);
 						$this->setdevo($devo+$user*$percent*2);
 						$this->setSlopro($slpro+$user*$percent);
 						break;
 				}
 				break;
-			case CL:
+			case "CL":
 				switch ($Oface){
-					case FL:
+					case "FL":
 						$this->setdw($dw+$user*$percent);
 						$this->setdevo($devo);
 						$this->setSlopro($slpro);
 						break;
-					case YL:
+					case "YL":
 						$this->setdw($dw+$user*$percent*2);
 						$this->setdevo($devo-$user*$percent);
 						$this->setSlopro($slpro+$user*$percent);
 						break;
-					case ED:
+					case "ED":
 						$this->setdw($dw+$user*$percent*2);
 						$this->setdevo($devo-$user*$percent*2);
 						$this->setSlopro($slpro+$user*$percent);
 						break;
-					case GZL:
+					case "GZL":
 						$this->setdw($dw+$user*$percent*2);
 						$this->setdevo($devo-$user*$percent*2);
 						$this->setSlopro($slpro-$user*$percent);
 						break;
-					case CL:
+					case "CL":
 						$this->setdw($dw);
 						$this->setdevo($devo);
 						$this->setSlopro($slpro);
